@@ -34,9 +34,9 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_route" "r" {
-  route_table_id            = aws_vpc.main.main_route_table_id
-  destination_cidr_block    = "0.0.0.0/0"
-  gateway_id = aws_internet_gateway.igw.id
+  route_table_id         = aws_vpc.main.main_route_table_id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.igw.id
 }
 
 ###################
@@ -49,11 +49,11 @@ resource "aws_security_group" "lb" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description      = "HTTP"
-    from_port        = 80
-    to_port          = 81
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 81
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -71,10 +71,10 @@ resource "aws_security_group" "task" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description      = "HTTP"
-    from_port        = 80
-    to_port          = 80
-    protocol         = "tcp"
+    description     = "HTTP"
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
     security_groups = [aws_security_group.lb.id]
   }
 
@@ -99,7 +99,7 @@ resource "aws_ecr_repository" "hello_world" {
 
 output "ecr_repository_url" {
   description = "URL of the ECR repository for storing the helloworld web app."
-  value = aws_ecr_repository.hello_world.repository_url
+  value       = aws_ecr_repository.hello_world.repository_url
 }
 
 #######
@@ -149,10 +149,10 @@ resource "aws_ecs_cluster" "hello_world" {
 
 # Task definition of our tasks. 
 resource "aws_ecs_task_definition" "hello_world" {
-  family = "helloworld"
-  network_mode = "awsvpc"
-  cpu = 256
-  memory = 512
+  family             = "helloworld"
+  network_mode       = "awsvpc"
+  cpu                = 256
+  memory             = 512
   execution_role_arn = aws_iam_role.hello_world.arn
   container_definitions = jsonencode([
     {
@@ -177,7 +177,7 @@ resource "aws_ecs_task_definition" "hello_world" {
 # Two services, one green and one blue. 
 resource "aws_ecs_service" "green" {
   name            = "green"
-  launch_type = "FARGATE"
+  launch_type     = "FARGATE"
   cluster         = aws_ecs_cluster.hello_world.id
   task_definition = aws_ecs_task_definition.hello_world.arn
   desired_count   = 1
@@ -189,15 +189,15 @@ resource "aws_ecs_service" "green" {
   }
 
   network_configuration {
-    subnets = [aws_subnet.a.id, aws_subnet.b.id]
-    security_groups = [aws_security_group.task.id]
+    subnets          = [aws_subnet.a.id, aws_subnet.b.id]
+    security_groups  = [aws_security_group.task.id]
     assign_public_ip = true
   }
 }
 
 resource "aws_ecs_service" "blue" {
   name            = "blue"
-  launch_type = "FARGATE"
+  launch_type     = "FARGATE"
   cluster         = aws_ecs_cluster.hello_world.id
   task_definition = aws_ecs_task_definition.hello_world.arn
   desired_count   = 1
@@ -209,8 +209,8 @@ resource "aws_ecs_service" "blue" {
   }
 
   network_configuration {
-    subnets = [aws_subnet.a.id, aws_subnet.b.id]
-    security_groups = [aws_security_group.task.id]
+    subnets          = [aws_subnet.a.id, aws_subnet.b.id]
+    security_groups  = [aws_security_group.task.id]
     assign_public_ip = true
   }
 }
@@ -231,34 +231,34 @@ resource "aws_lb" "hello_world" {
 
 output "load_balancer_url" {
   description = "URL for accessing the helloworld web app."
-  value = aws_lb.hello_world.dns_name
+  value       = aws_lb.hello_world.dns_name
 }
 
 # Two target groups, one green and one blue.
 resource "aws_lb_target_group" "green" {
-  name     = "green"
+  name        = "green"
   target_type = "ip"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
 }
 
 output "green_target_group_arn" {
   description = "ARN of the green ALB target group."
-  value = aws_lb_target_group.green.arn
+  value       = aws_lb_target_group.green.arn
 }
 
 resource "aws_lb_target_group" "blue" {
-  name     = "blue"
+  name        = "blue"
   target_type = "ip"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
 }
 
 output "blue_target_group_arn" {
   description = "ARN of the blue ALB target group."
-  value = aws_lb_target_group.blue.arn
+  value       = aws_lb_target_group.blue.arn
 }
 
 # Two listeners
@@ -280,7 +280,7 @@ resource "aws_lb_listener" "active" {
 }
 
 output "primary_listener_arn" {
-  value = aws_lb_listener.active.arn
+  value       = aws_lb_listener.active.arn
   description = "ARN of the primary load balancer listener"
 }
 
@@ -300,6 +300,6 @@ resource "aws_lb_listener" "inactive" {
 }
 
 output "secondary_listener_arn" {
-  value = aws_lb_listener.inactive.arn
+  value       = aws_lb_listener.inactive.arn
   description = "ARN of the secondary load balancer listener"
 }
